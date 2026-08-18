@@ -5,7 +5,7 @@
 
 <p align="center">
   <a href="https://monkeytype.com/profile/emailosman">
-    <img src="https://monkeytype-readme.vercel.app/api/badge?username=emailosman&theme=dark" alt="Monkeytype Stats" />
+    <img src="https://monkeytype-readme.vercel.app/api/badge?username=emailosman&apeKey=NmE4NDhhZTRiNWE3OGQ4NDE4OGMwY2E1Lk8za2lEY1lzOHdqdEFTblJFZmRzZ0lmbTJ3eDR6bENY&theme=dark" alt="Monkeytype Stats" />
   </a>
 </p>
 
