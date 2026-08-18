@@ -1,27 +1,278 @@
-name: Generate Monkeytype README
+```yaml
+name: Update Monkeytype Stats
 
 on:
+  workflow_dispatch:
   schedule:
     - cron: "0 */6 * * *"
-  workflow_dispatch:
+
+permissions:
+  contents: write
 
 jobs:
-  download-svg:
+  update:
     runs-on: ubuntu-latest
 
     steps:
-      - name: Checkout
+      - name: Checkout repository
         uses: actions/checkout@v4
 
-      - name: Set up Node.js
-        uses: actions/setup-node@v3
-        with:
-          node-version: "20.x"
+      - name: Generate Monkeytype SVG
+        env:
+          MONKEYTYPE_API_KEY: ${{ secrets.MONKEYTYPE_API_KEY }}
+        run: |
+          python3 <<'PY'
+          import json
+          import os
+          import urllib.request
+          import html
+          from pathlib import Path
 
-      - name: Generate Monkeytype README SVG
-        uses: monkeytype-hub/monkeytype-readme@v1.0.0
-        with:
-          username: emailosman
-          themes: dark
-          target-branch: monkeytype-readme
-          github-token: ${{ secrets.GITHUB_TOKEN }}
+          API = "https://api.monkeytype.com"
+
+          key = os.environ.get("MONKEYTYPE_API_KEY")
+
+          if not key:
+              raise SystemExit("MONKEYTYPE_API_KEY is not configured.")
+
+          def api(path):
+              req = urllib.request.Request(
+                  API + path,
+                  headers={
+                      "Authorization": f"ApeKey {key}",
+                      "Accept": "application/json",
+                  },
+              )
+
+              with urllib.request.urlopen(req, timeout=20) as response:
+                  return json.load(response)
+
+          print("Fetching Monkeytype statistics...")
+
+          stats = api("/users/stats")
+          pb = api("/users/personalBests?mode=time&mode2=60")
+
+          stats_data = stats.get("data", {})
+          pb_data = pb.get("data", {})
+
+          if isinstance(pb_data, list):
+              pb_data = pb_data[0] if pb_data else {}
+
+          completed = stats_data.get("completedTests", 0)
+          time_typing = stats_data.get("timeTyping", 0)
+
+          wpm = pb_data.get("wpm", 0)
+          raw = pb_data.get("raw", 0)
+          acc = pb_data.get("acc", 0)
+          consistency = pb_data.get("consistency", 0)
+
+          def fmt_time(seconds):
+              try:
+                  seconds = int(seconds)
+                  hours = seconds // 3600
+                  minutes = (seconds % 3600) // 60
+
+                  if hours:
+                      return f"{hours}h {minutes}m"
+                  return f"{minutes}m"
+              except:
+                  return "—"
+
+          wpm = round(float(wpm), 1)
+          raw = round(float(raw), 1)
+          acc = round(float(acc), 1)
+          consistency = round(float(consistency), 1)
+
+          svg = f'''<svg width="900" height="270"
+          viewBox="0 0 900 270"
+          xmlns="http://www.w3.org/2000/svg">
+
+            <defs>
+              <linearGradient id="bg" x1="0" y1="0" x2="1" y2="1">
+                <stop offset="0%" stop-color="#111111"/>
+                <stop offset="100%" stop-color="#1b1b1b"/>
+              </linearGradient>
+
+              <linearGradient id="accent" x1="0" y1="0" x2="1" y2="0">
+                <stop offset="0%" stop-color="#e2b714"/>
+                <stop offset="100%" stop-color="#f5d76e"/>
+              </linearGradient>
+            </defs>
+
+            <rect
+              x="1"
+              y="1"
+              width="898"
+              height="268"
+              rx="22"
+              fill="url(#bg)"
+              stroke="#2d2d2d"
+              stroke-width="2"
+            />
+
+            <circle
+              cx="810"
+              cy="45"
+              r="90"
+              fill="#e2b714"
+              opacity="0.035"
+            />
+
+            <circle
+              cx="850"
+              cy="220"
+              r="130"
+              fill="#e2b714"
+              opacity="0.025"
+            />
+
+            <text
+              x="45"
+              y="55"
+              fill="#888888"
+              font-family="monospace"
+              font-size="14"
+              letter-spacing="2">
+              MONKEYTYPE
+            </text>
+
+            <text
+              x="45"
+              y="93"
+              fill="#ffffff"
+              font-family="Arial, sans-serif"
+              font-size="30"
+              font-weight="700">
+              emailosman
+            </text>
+
+            <rect
+              x="45"
+              y="112"
+              width="810"
+              height="1"
+              fill="#303030"
+            />
+
+            <text x="45" y="157"
+              fill="#777777"
+              font-family="Arial, sans-serif"
+              font-size="13">
+              PERSONAL BEST
+            </text>
+
+            <text x="45" y="205"
+              fill="url(#accent)"
+              font-family="Arial, sans-serif"
+              font-size="48"
+              font-weight="700">
+              {wpm} WPM
+            </text>
+
+            <text x="260" y="157"
+              fill="#777777"
+              font-family="Arial, sans-serif"
+              font-size="13">
+              ACCURACY
+            </text>
+
+            <text x="260" y="190"
+              fill="#ffffff"
+              font-family="Arial, sans-serif"
+              font-size="24"
+              font-weight="600">
+              {acc}%
+            </text>
+
+            <text x="390" y="157"
+              fill="#777777"
+              font-family="Arial, sans-serif"
+              font-size="13">
+              CONSISTENCY
+            </text>
+
+            <text x="390" y="190"
+              fill="#ffffff"
+              font-family="Arial, sans-serif"
+              font-size="24"
+              font-weight="600">
+              {consistency}%
+            </text>
+
+            <text x="545" y="157"
+              fill="#777777"
+              font-family="Arial, sans-serif"
+              font-size="13">
+              RAW
+            </text>
+
+            <text x="545" y="190"
+              fill="#ffffff"
+              font-family="Arial, sans-serif"
+              font-size="24"
+              font-weight="600">
+              {raw}
+            </text>
+
+            <text x="665" y="157"
+              fill="#777777"
+              font-family="Arial, sans-serif"
+              font-size="13">
+              TESTS
+            </text>
+
+            <text x="665" y="190"
+              fill="#ffffff"
+              font-family="Arial, sans-serif"
+              font-size="24"
+              font-weight="600">
+              {completed}
+            </text>
+
+            <text x="45" y="238"
+              fill="#555555"
+              font-family="Arial, sans-serif"
+              font-size="12">
+              {fmt_time(time_typing)} total typing time · 60 second mode
+            </text>
+
+            <text x="855" y="238"
+              text-anchor="end"
+              fill="#555555"
+              font-family="monospace"
+              font-size="11">
+              LIVE DATA
+            </text>
+
+          </svg>'''
+
+          # Basic validation so malformed data cannot silently create a bad image.
+          if not wpm and not completed:
+              print(json.dumps(stats, indent=2))
+              raise SystemExit("Monkeytype returned no usable statistics.")
+
+          path = Path("assets/monkeytype.svg")
+          path.parent.mkdir(parents=True, exist_ok=True)
+          path.write_text(svg, encoding="utf-8")
+
+          print("Generated:", path)
+          print(f"WPM: {wpm}")
+          print(f"Accuracy: {acc}%")
+          print(f"Consistency: {consistency}%")
+          print(f"Tests: {completed}")
+          PY
+
+      - name: Commit updated stats
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+
+          git add assets/monkeytype.svg
+
+          if git diff --cached --quiet; then
+            echo "No changes to commit."
+          else
+            git commit -m "Update Monkeytype stats"
+            git push
+          fi
+```
