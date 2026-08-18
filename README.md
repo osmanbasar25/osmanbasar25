@@ -4,7 +4,9 @@
 </p>
 
 <p align="center">
-  <a href="https://monkeytype.com/profile/emailosman"><img src="https://monkeytype-readme.vercel.app/api/badge?username=emailosman&theme=dark" alt="Monkeytype Stats" /></a>
+  <a href="https://monkeytype.com/profile/emailosman">
+    <img src="https://monkeytype-readme.vercel.app/api/badge?username=emailosman&theme=dark" alt="Monkeytype Stats" />
+  </a>
 </p>
 
 ---
@@ -31,8 +33,8 @@
 
 ### 📊 GitHub Stats
 <p align="center">
-  <img src="https://github-readme-stats.vercel.app/api?username=osmanbasar25&show_icons=true&theme=dark&hide_border=true" alt="Osman's GitHub Stats" width="48%" />
-  <img src="https://github-readme-streak-stats.herokuapp.com/?user=osmanbasar25&theme=dark&hide_border=true" alt="Osman's Streak" width="48%" />
+  <img src="https://github-readme-stats.vercel.app/api?username=osmanbasar25&show_icons=true&theme=dark&hide_border=true" alt="Osman's GitHub Stats" />
+  <img src="https://github-readme-streak-stats.herokuapp.com/?user=osmanbasar25&theme=dark&hide_border=true" alt="Osman's Streak" />
 </p>
 
 ---
