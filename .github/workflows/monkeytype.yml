@@ -1,4 +1,4 @@
-name: Update Monkeytype Stats
+name: Generate Monkeytype README
 
 on:
   schedule:
@@ -6,12 +6,22 @@ on:
   workflow_dispatch:
 
 jobs:
-  monkeytype:
+  download-svg:
     runs-on: ubuntu-latest
 
     steps:
-      - name: Generate Monkeytype stats
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v3
+        with:
+          node-version: "20.x"
+
+      - name: Generate Monkeytype README SVG
         uses: monkeytype-hub/monkeytype-readme@v1.0.0
         with:
           username: emailosman
+          themes: dark
+          target-branch: monkeytype-readme
           github-token: ${{ secrets.GITHUB_TOKEN }}
