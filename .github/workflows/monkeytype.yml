@@ -1,4 +1,4 @@
-```yaml
+yaml
 name: Update Monkeytype Stats
 
 on:
@@ -275,4 +275,4 @@ jobs:
             git commit -m "Update Monkeytype stats"
             git push
           fi
-```
+
