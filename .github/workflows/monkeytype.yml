@@ -1,4 +1,3 @@
-```yaml
 name: Update Monkeytype Stats
 
 on:
@@ -25,11 +24,9 @@ jobs:
           import json
           import os
           import urllib.request
-          import html
           from pathlib import Path
 
           API = "https://api.monkeytype.com"
-
           key = os.environ.get("MONKEYTYPE_API_KEY")
 
           if not key:
@@ -50,21 +47,43 @@ jobs:
           print("Fetching Monkeytype statistics...")
 
           stats = api("/users/stats")
-          pb = api("/users/personalBests?mode=time&mode2=60")
 
-          stats_data = stats.get("data", {})
+          data = stats.get("data", {})
+
+          if not data:
+              raise SystemExit("Monkeytype returned no statistics.")
+
+          completed = data.get("completedTests", 0)
+          time_typing = data.get("timeTyping", 0)
+
+          # Try to obtain the user's best 60-second result.
+          pb = api("/users/personalBests?mode=time")
+
           pb_data = pb.get("data", {})
 
-          if isinstance(pb_data, list):
-              pb_data = pb_data[0] if pb_data else {}
+          best = None
 
-          completed = stats_data.get("completedTests", 0)
-          time_typing = stats_data.get("timeTyping", 0)
+          if isinstance(pb_data, dict):
+              mode_data = pb_data.get("time", pb_data)
 
-          wpm = pb_data.get("wpm", 0)
-          raw = pb_data.get("raw", 0)
-          acc = pb_data.get("acc", 0)
-          consistency = pb_data.get("consistency", 0)
+              if isinstance(mode_data, dict):
+                  best = mode_data.get("60")
+
+              if isinstance(mode_data, list) and mode_data:
+                  best = mode_data[0]
+
+          if not isinstance(best, dict):
+              best = {}
+
+          wpm = float(best.get("wpm", 0) or 0)
+          raw = float(best.get("raw", 0) or 0)
+          acc = float(best.get("acc", 0) or 0)
+          consistency = float(best.get("consistency", 0) or 0)
+
+          wpm = round(wpm, 1)
+          raw = round(raw, 1)
+          acc = round(acc, 1)
+          consistency = round(consistency, 1)
 
           def fmt_time(seconds):
               try:
@@ -74,14 +93,10 @@ jobs:
 
                   if hours:
                       return f"{hours}h {minutes}m"
-                  return f"{minutes}m"
-              except:
-                  return "—"
 
-          wpm = round(float(wpm), 1)
-          raw = round(float(raw), 1)
-          acc = round(float(acc), 1)
-          consistency = round(float(consistency), 1)
+                  return f"{minutes}m"
+              except Exception:
+                  return "—"
 
           svg = f'''<svg width="900" height="270"
           viewBox="0 0 900 270"
@@ -246,11 +261,6 @@ jobs:
 
           </svg>'''
 
-          # Basic validation so malformed data cannot silently create a bad image.
-          if not wpm and not completed:
-              print(json.dumps(stats, indent=2))
-              raise SystemExit("Monkeytype returned no usable statistics.")
-
           path = Path("assets/monkeytype.svg")
           path.parent.mkdir(parents=True, exist_ok=True)
           path.write_text(svg, encoding="utf-8")
@@ -260,7 +270,6 @@ jobs:
           print(f"Accuracy: {acc}%")
           print(f"Consistency: {consistency}%")
           print(f"Tests: {completed}")
-          PY
 
       - name: Commit updated stats
         run: |
@@ -275,4 +284,3 @@ jobs:
             git commit -m "Update Monkeytype stats"
             git push
           fi
-```
